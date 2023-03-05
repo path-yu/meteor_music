@@ -21,7 +21,7 @@ void main() async {
   }
   var currentUser = CurrentUser(userProfile);
   if (tokenData != null) {
-    currentUser.setToken(json.decode(tokenData));
+    currentUser.setToken(tokenData);
   }
   runApp(MultiProvider(
     providers: [ChangeNotifierProvider(create: (_) => currentUser)],

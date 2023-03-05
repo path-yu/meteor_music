@@ -4,15 +4,13 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:meteor_music/common/env.dart';
 import 'package:meteor_music/provider/current_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotify/spotify.dart';
 import 'package:uni_links/uni_links.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-
-var _url = Uri.parse(
-    'https://accounts.spotify.com/authorize?response_type=code&client_id=ba7d6d4a56644b198aa47bb9d88cfc17&redirect_uri=https://spotify-next-auth-blue.vercel.app');
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,42 +21,56 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool loading = false;
-
-  Future<void> _launchUrl() async {
-    if (!await launchUrl(_url,
+  var autoUri = Uri.parse(
+      'https://accounts.spotify.com/authorize?client_id=$clientId&redirect_uri=$redirectUrl&response_type=code&scope=$scopes');
+  handleSignInClick() async {
+    if (!await launchUrl(autoUri,
         mode: LaunchMode.externalNonBrowserApplication)) {
-      throw Exception('Could not launch $_url');
+      throw Exception('Could not launch $redirectUrl');
     }
+
+    //   // connect remote
+    //   getUserProfile(token);
+    // } on PlatformException catch (e) {
+    //   showMessage(context: context, title: e.message.toString());
+    //   return Future.error('$e.code: $e.message');
+    // } on MissingPluginException {
+    //   showMessage(context: context, title: 'not implemented');
+    //   return Future.error('not implemented');
+    // }
   }
 
   late StreamSubscription<Uri?> unSub;
+  void getUserProfile(Map<String, String> parameters) async {
+    var accessToken = parameters['access_token']!;
+    context.read<CurrentUser>().listenerCredentialsRefreshed();
+    setState(() {
+      loading = true;
+    });
+    SpotifyApi.withAccessToken(accessToken).me.get().then((value) {
+      context.read<CurrentUser>().setCurrentUser(value);
+      context.read<CurrentUser>().setToken(accessToken);
+      SharedPreferences.getInstance().then((pref) {
+        pref.setString(tokenKey, accessToken);
+        pref.setString(refreshTokenKey, parameters['refresh_token']!);
+        pref.setString(
+            currentUserKey, json.encode(context.read<CurrentUser>().toJson()));
+        context.go('/');
+        setState(() {
+          loading = false;
+        });
+      });
+    });
+  }
+
   void _handleIncomingLinks() {
     if (!kIsWeb) {
       // the foreground or in the background.
       unSub = uriLinkStream.listen((Uri? uri) {
         if (uri != null) {
           if (uri.host == 'spotify-next-auth-blue.vercel.app') {
-            var result = {};
-            uri.queryParameters.forEach((k, v) {
-              result[k] = v;
-            });
-            setState(() {
-              loading = true;
-            });
-            // getUserProfile
-            SpotifyApi.withAccessToken(result['access_token'])
-                .me
-                .get()
-                .then((value) {
-              context.read<CurrentUser>().setCurrentUser(value);
-              context.read<CurrentUser>().setToken(result);
-              SharedPreferences.getInstance().then((pref) {
-                pref.setString(tokenKey, json.encode(result));
-                pref.setString(currentUserKey,
-                    json.encode(context.read<CurrentUser>().toJson()));
-                context.go('/');
-              });
-            });
+            Map<String, String> result = {};
+            getUserProfile(uri.queryParameters);
           }
         }
       });
@@ -94,9 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                 : FractionallySizedBox(
                     widthFactor: 0.4,
                     child: ElevatedButton(
-                        onPressed: () {
-                          _launchUrl();
-                        },
+                        onPressed: handleSignInClick,
                         child: const Text('Sign In')),
                   ),
           )),

@@ -15,9 +15,9 @@ final baseRouter = GoRouter(
   },
   routes: [
     GoRoute(
-      path: '/',
-      builder: (context, state) => const HomePage(),
-    ),
+        path: '/',
+        // ignore: prefer_const_constructors
+        builder: (context, state) => UserAccount()),
     GoRoute(
       path: '/sign_in',
       builder: (context, state) => const LoginPage(),
