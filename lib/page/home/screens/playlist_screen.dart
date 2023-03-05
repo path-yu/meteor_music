@@ -69,7 +69,7 @@ class _PlayListScreenState extends State<PlayListScreen>
     _notifier2.dispose();
   }
 
-  void getTracks() {
+  void getTracks() async {
     if (playList.isNotEmpty) {
       setState(() {
         _playlist = playList;
@@ -77,6 +77,7 @@ class _PlayListScreenState extends State<PlayListScreen>
       return;
     }
     if (widget.id == '0') {
+      await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
       SpotifyApi.withAccessToken(context.read<CurrentUser>().accessToken!)
           .tracks
@@ -331,6 +332,9 @@ class _PlayListScreenState extends State<PlayListScreen>
                   item.track!.artists!.map((e) => e.name).toList().join(',');
               String name = item.track!.name!;
               return ListTile(
+                onTap: () {
+                  print('alert');
+                },
                 leading: Container(
                   decoration: BoxDecoration(
                       image: DecorationImage(

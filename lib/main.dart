@@ -14,6 +14,8 @@ void main() async {
   User? userProfile;
   var userProfileData = prefs.getString(currentUserKey);
   var tokenData = prefs.getString(tokenKey);
+  var tokenCreateTime = prefs.getInt(tokenCreateTimeKey);
+
   if (userProfileData != null) {
     var result = json.decode(userProfileData);
     userProfile = User.fromJson(result);
@@ -22,6 +24,9 @@ void main() async {
   var currentUser = CurrentUser(userProfile);
   if (tokenData != null) {
     currentUser.setToken(tokenData);
+  }
+  if (tokenCreateTime != null) {
+    currentUser.initTokenCreateTime(tokenCreateTime);
   }
   runApp(MultiProvider(
     providers: [ChangeNotifierProvider(create: (_) => currentUser)],

@@ -18,6 +18,7 @@ dependencies:
   flutter_screenutil: ^5.6.1
   spotify_sdk: ^2.3.0
   sliver_tools: ^0.2.8
+  dio: ^4.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

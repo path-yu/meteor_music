@@ -43,13 +43,13 @@ class _LoginPageState extends State<LoginPage> {
   late StreamSubscription<Uri?> unSub;
   void getUserProfile(Map<String, String> parameters) async {
     var accessToken = parameters['access_token']!;
-    context.read<CurrentUser>().listenerCredentialsRefreshed();
     setState(() {
       loading = true;
     });
     SpotifyApi.withAccessToken(accessToken).me.get().then((value) {
       context.read<CurrentUser>().setCurrentUser(value);
       context.read<CurrentUser>().setToken(accessToken);
+      context.read<CurrentUser>().setTokenTime();
       SharedPreferences.getInstance().then((pref) {
         pref.setString(tokenKey, accessToken);
         pref.setString(refreshTokenKey, parameters['refresh_token']!);
