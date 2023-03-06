@@ -79,6 +79,7 @@ class _PlayListScreenState extends State<PlayListScreen>
     if (widget.id == '0') {
       await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
+      // ignore: use_build_context_synchronously
       SpotifyApi.withAccessToken(context.read<CurrentUser>().accessToken!)
           .tracks
           .me
