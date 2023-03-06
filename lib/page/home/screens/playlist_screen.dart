@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:meteor_music/provider/current_playlist.dart';
 import 'package:meteor_music/provider/current_user.dart';
 import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart' hide Image;
@@ -93,6 +94,13 @@ class _PlayListScreenState extends State<PlayListScreen>
       }).catchError((error) {
         print(error);
       });
+    }
+  }
+
+  void handleTrackItemClick(int index) async {
+    if (context.read<CurrentPlayList>().playlist.isEmpty) {
+      var item = playList.elementAt(index);
+      context.read<CurrentPlayList>().fetchTrack(item, index);
     }
   }
 
@@ -333,9 +341,7 @@ class _PlayListScreenState extends State<PlayListScreen>
                   item.track!.artists!.map((e) => e.name).toList().join(',');
               String name = item.track!.name!;
               return ListTile(
-                onTap: () {
-                  print('alert');
-                },
+                onTap: () => handleTrackItemClick(index),
                 leading: Container(
                   decoration: BoxDecoration(
                       image: DecorationImage(

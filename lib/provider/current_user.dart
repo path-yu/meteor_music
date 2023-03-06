@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meteor_music/common/env.dart';
 import 'package:meteor_music/services/request.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotify/spotify.dart';
@@ -82,12 +83,36 @@ class CurrentUser with ChangeNotifier {
     return data;
   }
 
+  void listenerCredentialsRefreshed() async {
+    var pref = await SharedPreferences.getInstance();
+    var accessToken = pref.getString(tokenKey);
+    var refreshToken = pref.getString(refreshTokenKey);
+    var credentials = SpotifyApiCredentials(clientId, secret,
+        accessToken: accessToken, refreshToken: refreshToken);
+    // All of these fields are required for the Saved Credentials Flow
+    final spotifyCredentials = SpotifyApiCredentials(
+      credentials.clientId,
+      credentials.clientSecret,
+      accessToken: credentials.accessToken,
+      refreshToken: credentials.refreshToken,
+      scopes: _scopes,
+      expiration: credentials.expiration,
+    );
+    SpotifyApi(spotifyCredentials,
+        onCredentialsRefreshed: (SpotifyApiCredentials newCred) {
+      pref.setString(tokenKey, newCred.accessToken!);
+      pref.setString(refreshTokenKey, newCred.refreshToken!);
+      accessToken = newCred.accessToken;
+      notifyListeners();
+    });
+  }
+
   checkAccessToken() async {
     var pref = await SharedPreferences.getInstance();
     var diffDate = DateTime.now().millisecondsSinceEpoch - tokenCreateTime!;
     var duration = Duration(milliseconds: diffDate);
     // request refresh_token
-    if (duration.inHours >= 1) {
+    if (duration.inMinutes >= 1) {
       var res = await dio.get(
           'https://spotify-next-auth-path-yu.vercel.app/api/refresh',
           queryParameters: {'refresh_token': pref.getString(refreshTokenKey)});

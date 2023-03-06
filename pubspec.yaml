@@ -19,6 +19,12 @@ dependencies:
   spotify_sdk: ^2.3.0
   sliver_tools: ^0.2.8
   dio: ^4.0.4
+  youtube_explode_dart: ^1.12.4
+  json_annotation: ^4.8.0
+  uuid: ^3.0.7
+  path_provider: ^2.0.13
+  audioplayers: ^3.0.1
+  flutter_easyloading: ^3.0.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

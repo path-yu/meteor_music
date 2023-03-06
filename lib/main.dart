@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:meteor_music/provider/current_playlist.dart';
 import 'package:meteor_music/provider/current_user.dart';
 import 'package:meteor_music/router/router.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +31,10 @@ void main() async {
     currentUser.initTokenCreateTime(tokenCreateTime);
   }
   runApp(MultiProvider(
-    providers: [ChangeNotifierProvider(create: (_) => currentUser)],
+    providers: [
+      ChangeNotifierProvider(create: (_) => currentUser),
+      ChangeNotifierProvider(create: (_) => CurrentPlayList(0, []))
+    ],
     child: const MyApp(),
   ));
 }
@@ -47,6 +52,7 @@ class MyApp extends StatelessWidget {
         builder: (context, child) {
           return MaterialApp.router(
             routerConfig: baseRouter,
+            builder: EasyLoading.init(),
             title: 'meteor_music',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
