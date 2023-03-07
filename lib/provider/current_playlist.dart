@@ -13,25 +13,56 @@ import 'package:path_provider/path_provider.dart';
 final player = AudioPlayer();
 
 class CurrentPlayList with ChangeNotifier {
-  List<Map<String, dynamic>> playlist = [];
+  List<Track> playlist = [];
   int currentPlayIndex = 0;
-
+  bool isPlaying = false;
   CurrentPlayList(this.currentPlayIndex, this.playlist);
-  Map<String, dynamic> get currentPlaySong => playlist[currentPlayIndex];
-  next() {}
+  Track get currentPlaySong => playlist.isNotEmpty
+      ? playlist[currentPlayIndex]
+      : Track.fromJson({'name': ''});
+  next() {
+    int index;
+    if (currentPlayIndex == playlist.length - 1) {
+      index = 0;
+    } else {
+      index = currentPlayIndex + 1;
+    }
+    fetchTrack(playlist[index], index);
+  }
+
   prev() {}
-  setList(value) {
-    playlist = value;
+  setList(List<Track> value) {
+    playlist = value.toList();
     notifyListeners();
   }
 
-  fetchTrack(TrackSaved track, int index) async {
+  pause() {
+    isPlaying = false;
+    player.pause();
+    notifyListeners();
+  }
+
+  play() {
+    isPlaying = true;
+    player.resume();
+    notifyListeners();
+  }
+
+  togglePlay() {
+    if (isPlaying) {
+      pause();
+    } else {
+      play();
+    }
+  }
+
+  fetchTrack(Track track, int index) async {
     currentPlayIndex = index;
 
     notifyListeners();
-    final artists = (track.track!.artists!).map((ar) => ar.name!).toList();
+    final artists = (track.artists!).map((ar) => ar.name!).toList();
     final title = ServiceUtils.getTitle(
-      track.track!.name!,
+      track.name!,
       artists: artists,
       onlyCleanArtist: true,
     ).trim();
@@ -67,12 +98,14 @@ class CurrentPlayList with ChangeNotifier {
         await fileStream.close();
         EasyLoading.dismiss();
         await player.play(DeviceFileSource('${directory.path}/$title.mp4'));
+        play();
       } catch (e) {
         EasyLoading.dismiss();
       }
       // will immediately start playing
     } else {
       await player.play(DeviceFileSource('${directory.path}/$title.mp4'));
+      play();
     }
   }
 }

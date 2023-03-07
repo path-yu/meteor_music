@@ -6,6 +6,8 @@ import 'package:meteor_music/page/home/screens/library.dart';
 import 'package:meteor_music/page/home/screens/playlist_screen.dart';
 import 'package:meteor_music/page/home/screens/search_screen.dart';
 import 'package:meteor_music/page/home/screens/song_playing.dart';
+import 'package:meteor_music/provider/current_playlist.dart';
+import 'package:provider/provider.dart';
 
 Route _createRoute() {
   return PageRouteBuilder(
@@ -49,6 +51,10 @@ class _UserAccountState extends State<UserAccount> {
       _colorsRandom
           .add(Colors.primaries[Random().nextInt(Colors.primaries.length)]);
     }
+
+    player.onPlayerComplete.listen((event) {
+      context.read<CurrentPlayList>().next();
+    });
   }
 
   Widget? playlist_screen;
@@ -184,12 +190,24 @@ class _UserAccountState extends State<UserAccount> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Image.asset('assets/images/thumbnail 3.jpg'),
+                            // Image.network(
+                            //   context
+                            //       .read<CurrentPlayList>()
+                            //       .currentPlaySong
+                            //       .album?
+                            //       .images?
+                            //       .last
+                            //       .url
+                            //       .toString(),
+                            // ),
                             const SizedBox(width: 10),
-                            const Expanded(
+                            Expanded(
                                 child: Text(
-                              'Patience • Take That ',
-                              style: TextStyle(
+                              context
+                                  .read<CurrentPlayList>()
+                                  .currentPlaySong
+                                  .name!,
+                              style: const TextStyle(
                                   color: Colors.white,
                                   overflow: TextOverflow.ellipsis),
                             )),
@@ -208,11 +226,19 @@ class _UserAccountState extends State<UserAccount> {
                                       Icons.favorite,
                                       color: Colors.greenAccent.shade700,
                                     )),
-                                const Icon(
-                                  Icons.play_arrow,
-                                  size: 30,
-                                  color: Colors.white,
-                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      context
+                                          .read<CurrentPlayList>()
+                                          .togglePlay();
+                                    },
+                                    icon: Icon(
+                                      context.watch<CurrentPlayList>().isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      size: 22,
+                                      color: Colors.white,
+                                    ))
                               ],
                             )
                           ],

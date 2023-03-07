@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:meteor_music/provider/current_playlist.dart';
 import 'package:meteor_music/provider/current_user.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotify/spotify.dart' hide Image;
 
-Iterable<TrackSaved> playList = [];
+Iterable<Track> playList = [];
 
 class PlayListScreen extends StatefulWidget {
   final void Function(int index) updateIndex;
@@ -18,8 +19,8 @@ class PlayListScreen extends StatefulWidget {
 
 class _PlayListScreenState extends State<PlayListScreen>
     with AutomaticKeepAliveClientMixin {
-  Iterable<TrackSaved> _playlist = [];
-
+  Iterable<Track> _playlist = [];
+  bool listLoading = true;
   late ScrollController _scrollController;
   bool isVisible = true;
   late FocusNode _focusNode;
@@ -71,16 +72,18 @@ class _PlayListScreenState extends State<PlayListScreen>
   }
 
   void getTracks() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (playList.isNotEmpty) {
       setState(() {
         _playlist = playList;
+        listLoading = false;
       });
+      context.read<CurrentPlayList>().setList(playList.toList());
       return;
     }
     if (widget.id == '0') {
       await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
-      // ignore: use_build_context_synchronously
       SpotifyApi.withAccessToken(context.read<CurrentUser>().accessToken!)
           .tracks
           .me
@@ -88,8 +91,10 @@ class _PlayListScreenState extends State<PlayListScreen>
           .all()
           .then((value) {
         setState(() {
-          playList = value;
-          _playlist = value;
+          playList = value.map((e) => e.track!).toList();
+          _playlist = value.map((e) => e.track!).toList();
+          listLoading = false;
+          // prefs.setStringList('playList', value)
         });
       }).catchError((error) {
         print(error);
@@ -336,10 +341,10 @@ class _PlayListScreenState extends State<PlayListScreen>
                 delegate: SliverChildBuilderDelegate(
                     childCount: _playlist.length, (context, index) {
               var item = _playlist.elementAt(index);
-              var url = item.track!.album!.images!.last.url;
+              var url = item.album!.images!.last.url;
               var authorName =
-                  item.track!.artists!.map((e) => e.name).toList().join(',');
-              String name = item.track!.name!;
+                  item.artists!.map((e) => e.name).toList().join(',');
+              String name = item.name!;
               return ListTile(
                 onTap: () => handleTrackItemClick(index),
                 leading: Container(
