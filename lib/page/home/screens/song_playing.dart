@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:meteor_music/provider/current_playlist.dart';
+import 'package:provider/provider.dart';
 
 class SongPlaying extends StatefulWidget {
   const SongPlaying({super.key});
@@ -12,6 +14,9 @@ class _SongPlayingState extends State<SongPlaying> {
   double _sliderValue = 0.2;
   @override
   Widget build(BuildContext context) {
+    var currentPlayTrack = context.watch<CurrentPlayList>().currentPlayTrack;
+    var authorName = context.watch<CurrentPlayList>().authorName;
+    var url = currentPlayTrack!.album!.images!.first.url;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.blueGrey.shade900,
@@ -63,21 +68,21 @@ class _SongPlayingState extends State<SongPlaying> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(child: Image.asset(
-                  // width: MediaQuery.of(context).size.width - 60,
-                  'assets/images/thumbnail 3.jpg')),
+              Center(
+                  child: Image.network(
+                      width: MediaQuery.of(context).size.width - 60, url!)),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Take That',
-                    style: TextStyle(
+                  Text(
+                    currentPlayTrack.name!,
+                    style: const TextStyle(
                         fontSize: 20,
                         color: Colors.white,
                         fontWeight: FontWeight.w600),
                   ),
                   Text(
-                    'Patience',
+                    authorName,
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
                   )
                 ],
@@ -91,28 +96,41 @@ class _SongPlayingState extends State<SongPlaying> {
                             RoundSliderThumbShape(enabledThumbRadius: 5),
                         overlayShape:
                             RoundSliderOverlayShape(overlayRadius: 0)),
-                    child: Slider(
-                      thumbColor: Colors.white,
-                      inactiveColor: Colors.grey.shade700,
-                      value: _sliderValue,
-                      onChanged: ((value) {
-                        setState(() {
+                    child: Listener(
+                      onPointerUp: (_) {
+                        context.read<CurrentPlayList>().handleSliderUp();
+                      },
+                      onPointerDown: (event) {
+                        context.read<CurrentPlayList>().handleSliderDown();
+                      },
+                      child: Slider(
+                        thumbColor: Colors.white,
+                        inactiveColor: Colors.grey.shade700,
+                        value: context
+                            .watch<CurrentPlayList>()
+                            .currentPlayPercentage,
+                        activeColor: Colors.white,
+                        onChanged: (double value) {
                           _sliderValue = value;
-                        });
-                      }),
-                      activeColor: Colors.white,
+                          context
+                              .read<CurrentPlayList>()
+                              .updateCurrentPercentage(value);
+                        },
+                      ),
                     ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '1:01',
+                        context
+                            .watch<CurrentPlayList>()
+                            .currentPlayDurationLabel,
                         style: TextStyle(
                             fontSize: 12, color: Colors.grey.shade300),
                       ),
                       Text(
-                        '4:50',
+                        context.watch<CurrentPlayList>().durationLabel,
                         style: TextStyle(
                             fontSize: 12, color: Colors.grey.shade300),
                       )
@@ -136,7 +154,9 @@ class _SongPlayingState extends State<SongPlaying> {
                   IconButton(
                     padding: EdgeInsets.zero,
                     splashRadius: 20,
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<CurrentPlayList>().prev();
+                    },
                     icon: const Icon(
                       CupertinoIcons.backward_end_fill,
                       color: Colors.white,
@@ -149,9 +169,11 @@ class _SongPlayingState extends State<SongPlaying> {
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       splashRadius: 20,
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.play_arrow,
+                      onPressed: () {
+                        context.read<CurrentPlayList>().togglePlay();
+                      },
+                      icon: Icon(
+                        context.watch<CurrentPlayList>().currentPlayIcon,
                         size: 35,
                         color: Colors.black,
                       ),
@@ -160,7 +182,9 @@ class _SongPlayingState extends State<SongPlaying> {
                   IconButton(
                     padding: EdgeInsets.zero,
                     splashRadius: 20,
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<CurrentPlayList>().next();
+                    },
                     icon: const Icon(
                       CupertinoIcons.forward_end_fill,
                       color: Colors.white,
@@ -179,39 +203,16 @@ class _SongPlayingState extends State<SongPlaying> {
                   )
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                      padding: EdgeInsets.zero,
-                      splashRadius: 20,
-                      onPressed: () {},
-                      icon: Icon(CupertinoIcons.headphones,
-                          color: Colors.greenAccent.shade700)),
-                  Expanded(
-                      child: Text(
-                    'ROCKERZ 235V2',
-                    style: TextStyle(
-                        color: Colors.greenAccent.shade700,
-                        letterSpacing: 0.8,
-                        fontSize: 10),
-                  )),
-                  IconButton(
-                      padding: EdgeInsets.zero,
-                      splashRadius: 20,
-                      onPressed: () {},
-                      icon: const Icon(Icons.share_outlined,
-                          color: Colors.white)),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  IconButton(
-                      padding: EdgeInsets.zero,
-                      splashRadius: 20,
-                      onPressed: () {},
-                      icon: const Icon(Icons.menu, color: Colors.grey))
-                ],
-              )
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     IconButton(
+              //         padding: EdgeInsets.zero,
+              //         splashRadius: 20,
+              //         onPressed: () {},
+              //         icon: const Icon(Icons.menu, color: Colors.grey))
+              //   ],
+              // )
             ],
           ),
         ),

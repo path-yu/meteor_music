@@ -82,6 +82,7 @@ class _PlayListScreenState extends State<PlayListScreen>
       return;
     }
     if (widget.id == '0') {
+      prefs.setString(currentPlayListKey, '0');
       await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
       SpotifyApi.withAccessToken(context.read<CurrentUser>().accessToken!)
@@ -91,22 +92,19 @@ class _PlayListScreenState extends State<PlayListScreen>
           .all()
           .then((value) {
         setState(() {
-          playList = value.map((e) => e.track!).toList();
-          _playlist = value.map((e) => e.track!).toList();
+          var list = value.map((e) => e.track!).toList();
+          playList = list;
+          _playlist = list;
+          context.read<CurrentPlayList>().setList(list);
           listLoading = false;
-          // prefs.setStringList('playList', value)
         });
-      }).catchError((error) {
-        print(error);
       });
     }
   }
 
   void handleTrackItemClick(int index) async {
-    if (context.read<CurrentPlayList>().playlist.isEmpty) {
-      var item = playList.elementAt(index);
-      context.read<CurrentPlayList>().fetchTrack(item, index);
-    }
+    var item = playList.elementAt(index);
+    context.read<CurrentPlayList>().fetchTrack(item, index);
   }
 
   @override
@@ -452,13 +450,20 @@ class _PlayListScreenState extends State<PlayListScreen>
                         ? Positioned(
                             top: value,
                             right: 10,
-                            child: CircleAvatar(
-                              radius: 23,
-                              backgroundColor: Colors.greenAccent.shade700,
-                              child: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.black,
-                                size: 40,
+                            child: InkWell(
+                              onTap: () {
+                                context.read<CurrentPlayList>().togglePlay();
+                              },
+                              child: CircleAvatar(
+                                radius: 23,
+                                backgroundColor: Colors.greenAccent.shade700,
+                                child: Icon(
+                                  context
+                                      .watch<CurrentPlayList>()
+                                      .currentPlayIcon,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
                               ),
                             ),
                           )
