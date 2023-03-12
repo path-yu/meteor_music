@@ -159,7 +159,6 @@ class CurrentPlayList with ChangeNotifier {
   pause() {
     isPlaying = false;
     player.pause();
-    reset();
     notifyListeners();
   }
 
