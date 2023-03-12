@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:meteor_music/provider/current_playlist.dart';
 import 'package:meteor_music/provider/current_user.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotify/spotify.dart' hide Image;
 
 Iterable<Track> playList = [];
@@ -72,17 +71,18 @@ class _PlayListScreenState extends State<PlayListScreen>
   }
 
   void getTracks() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (playList.isNotEmpty) {
+    context.read<CurrentPlayList>().setCurrentPlayListId(widget.id);
+    print(widget.id);
+    print(context.read<CurrentPlayList>().currentPlayListId);
+    if (playList.isNotEmpty &&
+        context.read<CurrentPlayList>().currentPlayListId == widget.id) {
       setState(() {
         _playlist = playList;
         listLoading = false;
       });
-      context.read<CurrentPlayList>().setList(playList.toList());
       return;
     }
     if (widget.id == '0') {
-      prefs.setString(currentPlayListKey, '0');
       await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
       SpotifyApi.withAccessToken(context.read<CurrentUser>().accessToken!)
@@ -95,7 +95,20 @@ class _PlayListScreenState extends State<PlayListScreen>
           var list = value.map((e) => e.track!).toList();
           playList = list;
           _playlist = list;
-          context.read<CurrentPlayList>().setList(list);
+          listLoading = false;
+        });
+      });
+    } else {
+      await context.read<CurrentUser>().checkAccessToken();
+      SpotifyApi.withAccessToken(context.read<CurrentUser>().accessToken!)
+          .playlists
+          .getTracksByPlaylistId(widget.id)
+          .all()
+          .then((value) {
+        setState(() {
+          var list = value.toList();
+          playList = list;
+          _playlist = list;
           listLoading = false;
         });
       });
@@ -103,6 +116,12 @@ class _PlayListScreenState extends State<PlayListScreen>
   }
 
   void handleTrackItemClick(int index) async {
+    var currentPlayList = context.read<CurrentPlayList>();
+    if (currentPlayList.playlist.isEmpty) {
+      context.read<CurrentPlayList>().setList(playList.toList());
+    } else if (currentPlayList.currentPlayListId != widget.id) {
+      context.read<CurrentPlayList>().setList(playList.toList());
+    }
     var item = playList.elementAt(index);
     context.read<CurrentPlayList>().fetchTrack(item, index);
   }
@@ -452,6 +471,17 @@ class _PlayListScreenState extends State<PlayListScreen>
                             right: 10,
                             child: InkWell(
                               onTap: () {
+                                if (context
+                                    .read<CurrentPlayList>()
+                                    .playlist
+                                    .isEmpty) {
+                                  context
+                                      .read<CurrentPlayList>()
+                                      .setList(playList.toList());
+                                  context
+                                      .read<CurrentPlayList>()
+                                      .setCurrentPlayIndex(0);
+                                }
                                 context.read<CurrentPlayList>().togglePlay();
                               },
                               child: CircleAvatar(

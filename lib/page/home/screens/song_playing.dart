@@ -65,12 +65,18 @@ class _SongPlayingState extends State<SongPlaying> {
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                   child: Image.network(
-                      width: MediaQuery.of(context).size.width - 60, url!)),
+                width: MediaQuery.of(context).size.width - 60,
+                url!,
+                height: 300,
+              )),
+              const SizedBox(
+                height: 30,
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -86,6 +92,9 @@ class _SongPlayingState extends State<SongPlaying> {
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
                   )
                 ],
+              ),
+              const SizedBox(
+                height: 30,
               ),
               Column(
                 children: [
@@ -118,6 +127,9 @@ class _SongPlayingState extends State<SongPlaying> {
                         },
                       ),
                     ),
+                  ),
+                  const SizedBox(
+                    height: 30,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

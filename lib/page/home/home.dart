@@ -73,7 +73,7 @@ class _UserAccountState extends State<UserAccount> {
 
   void initPlayList() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    var playListId = prefs.getString(currentPlayListKey);
+    var playListId = prefs.getString(currentPlayListIdKey);
     if (playListId == '0') {
       await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
@@ -87,6 +87,7 @@ class _UserAccountState extends State<UserAccount> {
           context
               .read<CurrentPlayList>()
               .setList(value.map((e) => e.track!).toList());
+          context.read<CurrentPlayList>().initCurrentPosition();
           context
               .read<CurrentPlayList>()
               .setCurrentPlayIndex(prefs.getInt(currentPlayIndexKey)!);
@@ -95,18 +96,19 @@ class _UserAccountState extends State<UserAccount> {
     }
   }
 
+  void updateIndex(int newIndex, {String? id}) {
+    setState(() {
+      selectedIndex = newIndex;
+      if (id != null) {
+        playListId = id;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    void updateIndex(int newIndex, {String? id}) {
-      setState(() {
-        selectedIndex = newIndex;
-        if (id != null) {
-          playListId = id;
-        }
-      });
-    }
-
-    final List<Widget> screens = [
+    var currentPlayTrack = context.watch<CurrentPlayList>().currentPlayTrack;
+    List<Widget> screens = [
       HomeScreen(updateIndex),
       SearchScreen(_colorsRandom),
       const Library(),
@@ -115,7 +117,6 @@ class _UserAccountState extends State<UserAccount> {
         id: playListId,
       )
     ];
-    var currentPlayTrack = context.watch<CurrentPlayList>().currentPlayTrack;
 
     return SafeArea(
       child: Stack(

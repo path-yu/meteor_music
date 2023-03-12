@@ -16,7 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 
 final player = AudioPlayer();
-const currentPlayListKey = 'currentPlayListKey';
+const currentPlayListIdKey = 'currentPlayListIdKey';
 const currentPlayIndexKey = 'currentPlayIndexKey';
 const currentPlayDurationKey = 'currentPlayDurationKey';
 
@@ -28,6 +28,15 @@ class CurrentPlayList with ChangeNotifier {
   double currentPlayPercentage = 0.0;
   bool isPlaying = false;
   bool slideIsTouch = false;
+  String? currentPlayListId;
+
+  setCurrentPlayListId(String id) {
+    currentPlayListId = id;
+    SharedPreferences.getInstance().then((value) {
+      value.setString(currentPlayListIdKey, id);
+    });
+  }
+
   CurrentPlayList(this.currentPlayIndex, this.playlist);
   Future<SpotifyTrack?> get currentPlaySong async {
     if (playlist.isNotEmpty) {
@@ -119,7 +128,6 @@ class CurrentPlayList with ChangeNotifier {
   String get authorName =>
       currentPlayTrack!.artists!.map((e) => e.name).toList().join(',');
   prev() {
-    player.pause();
     int index;
     player.pause();
     if (currentPlayIndex == 0) {
@@ -127,6 +135,7 @@ class CurrentPlayList with ChangeNotifier {
     } else {
       index = currentPlayIndex - 1;
     }
+    reset();
     fetchTrack(playlist[index], index);
   }
 
@@ -135,17 +144,22 @@ class CurrentPlayList with ChangeNotifier {
     notifyListeners();
   }
 
+  reset() {
+    currentPlayDuration = 0;
+    currentPlayPercentage = 0;
+  }
+
   setCurrentPlayIndex(int index) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setInt(currentPlayIndexKey, index);
     currentPlayIndex = index;
     notifyListeners();
-    initCurrentPosition();
   }
 
   pause() {
     isPlaying = false;
     player.pause();
+    reset();
     notifyListeners();
   }
 

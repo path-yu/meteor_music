@@ -112,7 +112,7 @@ class CurrentUser with ChangeNotifier {
     var diffDate = DateTime.now().millisecondsSinceEpoch - tokenCreateTime!;
     var duration = Duration(milliseconds: diffDate);
     // request refresh_token
-    if (duration.inMinutes >= 1) {
+    if (duration.inSeconds >= 30) {
       var res = await dio.get(
           'https://spotify-next-auth-path-yu.vercel.app/api/refresh',
           queryParameters: {'refresh_token': pref.getString(refreshTokenKey)});
