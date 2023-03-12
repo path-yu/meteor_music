@@ -117,6 +117,7 @@ class CurrentPlayList with ChangeNotifier {
   next() {
     int index;
     player.pause();
+    reset();
     if (currentPlayIndex == playlist.length - 1) {
       index = 0;
     } else {
