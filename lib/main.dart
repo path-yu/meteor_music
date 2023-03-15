@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:isar/isar.dart';
@@ -7,6 +8,7 @@ import 'package:meteor_music/models/spotify_track.dart';
 import 'package:meteor_music/provider/current_playlist.dart';
 import 'package:meteor_music/provider/current_user.dart';
 import 'package:meteor_music/router/router.dart';
+import 'package:meteor_music/services/audio_service_hander.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +17,7 @@ import 'package:spotify/spotify.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<Isar>? isar;
+CurrentPlayList? ctxCurrentPlayList;
 initIsar() async {
   final dir = await getApplicationSupportDirectory();
   isar = Isar.open(
@@ -24,6 +27,7 @@ initIsar() async {
   );
 }
 
+MyAudioHandler? audioHandler;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -46,10 +50,20 @@ void main() async {
   await initializeDateFormatting('en');
 
   initIsar();
+  // store this in a singleton
+  audioHandler = await AudioService.init(
+    builder: () => MyAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.meteor_music.app',
+      androidNotificationChannelName: 'meteor_music',
+      androidNotificationOngoing: true,
+    ),
+  );
+  ctxCurrentPlayList = CurrentPlayList(0, []);
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => currentUser),
-      ChangeNotifierProvider(create: (_) => CurrentPlayList(0, []))
+      ChangeNotifierProvider(create: (_) => ctxCurrentPlayList)
     ],
     child: const MyApp(),
   ));

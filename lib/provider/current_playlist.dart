@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -29,7 +30,6 @@ class CurrentPlayList with ChangeNotifier {
   bool isPlaying = false;
   bool slideIsTouch = false;
   String? currentPlayListId;
-
   setCurrentPlayListId(String id) {
     currentPlayListId = id;
     SharedPreferences.getInstance().then((value) {
@@ -268,18 +268,31 @@ class CurrentPlayList with ChangeNotifier {
             path: file.path,
             duration: ytVideo.duration!.inMilliseconds);
         duration = ytVideo.duration!.inMilliseconds;
+        addMediaItem(track, duration);
         play();
       } catch (e) {
-        notifyListeners();
         EasyLoading.dismiss();
       }
     } else {
       duration = cacheTrack.duration!;
       await player.play(DeviceFileSource(file.path),
           position: Duration(milliseconds: currentPlayDuration));
+      addMediaItem(track, duration);
       play();
     }
   }
+}
+
+addMediaItem(Track track, int duration) {
+  final item = MediaItem(
+    id: track.id!,
+    album: track.album!.name!,
+    title: track.name!,
+    artist: track.artists!.map((e) => e.name).join(','),
+    duration: Duration(milliseconds: duration),
+    artUri: Uri.parse(track.album!.images!.last.url!),
+  );
+  audioHandler!.addItem(item);
 }
 
 formateDuration(int milliseconds) {

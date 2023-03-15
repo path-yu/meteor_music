@@ -28,6 +28,7 @@ dependencies:
   isar: ^3.0.5
   isar_flutter_libs: ^3.0.5
   intl: ^0.18.0
+  audio_service: ^0.18.9
 dev_dependencies:
   flutter_test:
     sdk: flutter
