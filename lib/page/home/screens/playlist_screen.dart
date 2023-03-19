@@ -72,16 +72,6 @@ class _PlayListScreenState extends State<PlayListScreen>
 
   void getTracks() async {
     context.read<CurrentPlayList>().setCurrentPlayListId(widget.id);
-    print(widget.id);
-    print(context.read<CurrentPlayList>().currentPlayListId);
-    if (playList.isNotEmpty &&
-        context.read<CurrentPlayList>().currentPlayListId == widget.id) {
-      setState(() {
-        _playlist = playList;
-        listLoading = false;
-      });
-      return;
-    }
     if (widget.id == '0') {
       await context.read<CurrentUser>().checkAccessToken();
       // get liked songs
