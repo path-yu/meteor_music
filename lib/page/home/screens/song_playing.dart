@@ -70,7 +70,6 @@ class _SongPlayingState extends State<SongPlaying> {
             children: [
               Center(
                   child: Image.network(
-                width: MediaQuery.of(context).size.width - 60,
                 url!,
                 height: 300,
               )),

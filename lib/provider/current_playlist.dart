@@ -93,12 +93,14 @@ class CurrentPlayList with ChangeNotifier {
 
   initCurrentPosition() async {
     var track = await currentPlaySong;
-    SharedPreferences.getInstance().then((value) {
-      currentPlayDuration = value.getInt(currentPlayDurationKey) ?? 0;
-      currentPlayPercentage =
-          (currentPlayDuration / track!.duration!).toDouble();
-      notifyListeners();
-    });
+    if (track != null) {
+      SharedPreferences.getInstance().then((value) {
+        currentPlayDuration = value.getInt(currentPlayDurationKey) ?? 0;
+        currentPlayPercentage =
+            (currentPlayDuration / track.duration!).toDouble();
+        notifyListeners();
+      });
+    }
   }
 
   updateCurrentPercentage(double value) async {

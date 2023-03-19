@@ -99,6 +99,7 @@ class _UserAccountState extends State<UserAccount> {
   void updateIndex(int newIndex, {String? id}) {
     setState(() {
       selectedIndex = newIndex;
+      print(id);
       if (id != null) {
         playListId = id;
       }

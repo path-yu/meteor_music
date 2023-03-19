@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     (context, index) {
                       return InkWell(
                         onTap: () {
-                          widget.updateIndex(3);
+                          widget.updateIndex(3,id: '0');
                         },
                         child: Stack(
                           children: [
